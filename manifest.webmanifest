@@ -5,7 +5,7 @@
   "display": "standalone",
   "background_color": "#f3f4f6",
   "theme_color": "#111827",
-  "description": "Personal expense tracking, monthly budgeting and savings planning.",
+  "description": "Savings-first personal finance planner.",
   "icons": [
     {
       "src": "icons/icon-192.png",
