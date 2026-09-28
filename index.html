@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#111827">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Money Plan">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+  <title>Money Plan</title>
+</head>
+<body>
+<div class="app">
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">PERSONAL FINANCE</div>
+      <h1>Money Plan</h1>
+    </div>
+    <button id="installHelp" class="icon-btn" aria-label="Installation help">?</button>
+  </header>
+
+  <main>
+    <section id="screen-dashboard" class="screen active">
+      <div class="month-row">
+        <button id="prevMonth">‹</button>
+        <strong id="monthTitle"></strong>
+        <button id="nextMonth">›</button>
+      </div>
+
+      <div class="hero-card">
+        <span>Available this month</span>
+        <strong id="available">€0</strong>
+        <div class="progress"><i id="budgetProgress"></i></div>
+        <small id="pace"></small>
+      </div>
+
+      <div class="stat-grid">
+        <div class="card"><span>Income</span><b id="income">€0</b></div>
+        <div class="card"><span>Spent</span><b id="spent">€0</b></div>
+        <div class="card"><span>To save</span><b id="saveTarget">€0</b></div>
+        <div class="card"><span>Planned bills</span><b id="plannedBills">€0</b></div>
+      </div>
+
+      <div class="card">
+        <div class="section-head"><h2>Spending</h2><span id="spendPct"></span></div>
+        <div id="categories"></div>
+      </div>
+
+      <div class="card">
+        <div class="section-head"><h2>Recent</h2><button class="link" data-screen="expenses">See all</button></div>
+        <div id="recent"></div>
+      </div>
+    </section>
+
+    <section id="screen-expenses" class="screen">
+      <div class="section-title"><h2>Expenses</h2><span id="expenseMonth"></span></div>
+      <form id="expenseForm" class="card form">
+        <label>Amount (€)<input id="amount" inputmode="decimal" type="number" min="0.01" step="0.01" required placeholder="0.00"></label>
+        <label>Category<select id="category"></select></label>
+        <label>Date<input id="date" type="date" required></label>
+        <label>Note<input id="note" maxlength="80" placeholder="Optional"></label>
+        <button class="primary" type="submit">Add expense</button>
+      </form>
+      <div class="card"><div id="expenseList"></div></div>
+    </section>
+
+    <section id="screen-plan" class="screen">
+      <div class="section-title"><h2>Monthly Plan</h2><span id="planMonth"></span></div>
+      <div class="card form">
+        <label>Monthly income (€)<input id="p-income" type="number" min="0" step="50"></label>
+        <h3>Planned spending</h3>
+        <label>Housing<input id="p-housing" type="number" min="0" step="10"></label>
+        <label>Utilities & bills<input id="p-bills" type="number" min="0" step="10"></label>
+        <label>Transport<input id="p-transport" type="number" min="0" step="10"></label>
+        <label>Food<input id="p-food" type="number" min="0" step="10"></label>
+        <label>Family<input id="p-family" type="number" min="0" step="10"></label>
+        <label>Leisure<input id="p-leisure" type="number" min="0" step="10"></label>
+        <label>Other<input id="p-other" type="number" min="0" step="10"></label>
+        <h3>Savings</h3>
+        <label>Monthly savings target<input id="p-savings" type="number" min="0" step="50"></label>
+        <button id="savePlan" class="primary">Save plan</button>
+      </div>
+      <div class="card" id="planReality"></div>
+      <div class="card">
+        <h2>Recurring items</h2>
+        <p class="muted">Use these for salary, rent, subscriptions, insurance and other predictable monthly amounts.</p>
+        <form id="recurringForm" class="form">
+          <label>Name<input id="r-name" maxlength="50" required placeholder="e.g. Rent"></label>
+          <label>Amount (€)<input id="r-amount" type="number" min="0.01" step="0.01" required></label>
+          <label>Type<select id="r-type"><option value="income">Income</option><option value="expense">Expense</option></select></label>
+          <label>Category<select id="r-category"></select></label>
+          <button class="secondary" type="submit">Add recurring item</button>
+        </form>
+        <div id="recurringList"></div>
+      </div>
+    </section>
+
+    <section id="screen-savings" class="screen">
+      <div class="section-title"><h2>Savings</h2><span>Long-term</span></div>
+      <div class="card form">
+        <label>Current savings (€)<input id="s-current" type="number" min="0" step="100"></label>
+        <label>Monthly contribution (€)<input id="s-monthly" type="number" min="0" step="50"></label>
+        <label>Savings goal (€)<input id="s-goal" type="number" min="0" step="500"></label>
+        <button id="saveSavings" class="primary">Save savings plan</button>
+      </div>
+      <div class="hero-card savings-hero">
+        <span>Projected progress</span>
+        <strong id="goalProgress">€0</strong>
+        <div class="progress"><i id="goalBar"></i></div>
+        <small id="goalEta"></small>
+      </div>
+      <div class="card">
+        <h2>12-month projection</h2>
+        <div id="projection"></div>
+      </div>
+    </section>
+  </main>
+
+  <button id="fab" class="fab" aria-label="Add expense">+</button>
+
+  <nav class="nav">
+    <button class="nav-btn active" data-screen="dashboard"><span>⌂</span>Home</button>
+    <button class="nav-btn" data-screen="expenses"><span>＋</span>Expenses</button>
+    <button class="nav-btn" data-screen="plan"><span>▤</span>Plan</button>
+    <button class="nav-btn" data-screen="savings"><span>↗</span>Savings</button>
+  </nav>
+</div>
+
+<div id="toast" class="toast" aria-live="polite"></div>
+<script src="app.js"></script>
+</body>
+</html>
