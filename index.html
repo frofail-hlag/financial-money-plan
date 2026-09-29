@@ -10,157 +10,156 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
 <link rel="stylesheet" href="styles.css">
-<title>Money Plan</title>
+<title>Money Plan V3</title>
 </head>
 <body>
 <div class="app" id="app">
 <header class="topbar">
-  <div><div class="eyebrow">PERSONAL FINANCE · V2</div><h1>Money Plan</h1></div>
+  <div><div class="eyebrow">PERSONAL FINANCE · V3</div><h1>Money Plan</h1></div>
   <button id="help" class="icon">?</button>
 </header>
-
 <main>
 <section id="home" class="screen active">
-  <div class="monthbar"><button data-month="-1">‹</button><strong id="month"></strong><button data-month="1">›</button></div>
-
+  <div class="monthbar"><button data-cycle="-1">‹</button><div><strong id="cycleTitle"></strong><small id="cycleDates"></small></div><button data-cycle="1">›</button></div>
   <div class="hero">
-    <span>Safe-to-spend this month</span>
-    <strong id="safeSpend">€0</strong>
-    <div class="progress"><i id="safeBar"></i></div>
-    <small id="safeMessage"></small>
+    <span>Expected money left this cycle</span>
+    <strong id="remaining">€0</strong>
+    <div class="progress"><i id="remainingBar"></i></div>
+    <small id="remainingMessage"></small>
   </div>
-
   <div class="daily-card">
-    <div><span>Today's allowance</span><b id="dailyAllowance">€0</b></div>
+    <div><span>Safe-to-spend per day</span><b id="dailyAllowance">€0</b></div>
     <div class="mini-status" id="dailyStatus"></div>
   </div>
-
   <div class="stats">
-    <div><span>Income</span><b id="income">€0</b></div>
-    <div><span>Fixed costs</span><b id="fixed">€0</b></div>
-    <div><span>Savings first</span><b id="savings">€0</b></div>
-    <div><span>Spent</span><b id="spent">€0</b></div>
+    <div><span>Available</span><b id="available">€0</b></div>
+    <div><span>Recurring outflows</span><b id="recurringTotal">€0</b></div>
+    <div><span>Variable planned</span><b id="variableTotal">€0</b></div>
+    <div><span>Revolut saving</span><b id="savingOutflow">€0</b></div>
   </div>
-
   <div class="card">
-    <div class="head"><h2>Month forecast</h2><span id="forecastBadge"></span></div>
+    <div class="head"><h2>Cycle forecast</h2><span id="forecastBadge"></span></div>
     <div class="forecast-grid">
-      <div><span>Projected spending</span><b id="projected">€0</b></div>
-      <div><span>Projected savings</span><b id="projectedSave">€0</b></div>
-      <div><span>Month-end balance</span><b id="monthEnd">€0</b></div>
+      <div><span>Expected outflows</span><b id="expectedOutflows">€0</b></div>
+      <div><span>Expected leftover</span><b id="expectedLeftover">€0</b></div>
+      <div><span>Next cycle carry-in</span><b id="nextCarry">€0</b></div>
     </div>
     <p id="forecastText" class="muted"></p>
   </div>
-
   <div class="card">
-    <div class="head"><h2>Variable budgets</h2><button class="link" data-screen="plan">Edit</button></div>
-    <div id="budgetList"></div>
+    <div class="head"><h2>Financial cycle</h2><button class="link" data-screen="plan">Edit plan</button></div>
+    <div id="cycleBreakdown"></div>
   </div>
-
   <div class="card">
-    <div class="head"><h2>Recent spending</h2><button class="link" data-screen="expenses">See all</button></div>
+    <div class="head"><h2>University savings</h2><button class="link" data-screen="savingsScreen">Open savings</button></div>
+    <div id="homeSavings"></div>
+  </div>
+  <div class="card">
+    <div class="head"><h2>Recent one-off spending</h2><button class="link" data-screen="expenses">See all</button></div>
     <div id="recent"></div>
   </div>
 </section>
 
 <section id="expenses" class="screen">
-  <div class="title"><h2>Expenses</h2><span id="expenseMonth"></span></div>
-  <form id="expenseForm" class="card form">
+  <div class="title"><h2>One-off expenses</h2><span id="expenseCycle"></span></div>
+  <div class="card form">
+    <p class="muted">Use this for expenses that are not already covered by your recurring items or the monthly variable plan. PayPal Later and true surprises belong here.</p>
     <label>Amount (€)<input id="amount" type="number" inputmode="decimal" min=".01" step=".01" required placeholder="0.00"></label>
     <label>Category<select id="category"></select></label>
     <label>Date<input id="date" type="date" required></label>
-    <label>Note<input id="note" maxlength="80" placeholder="Optional"></label>
-    <button class="primary">Add expense</button>
-  </form>
+    <label>Note<input id="note" maxlength="100" placeholder="e.g. PayPal Später Bezahlen"></label>
+    <button id="addExpense" class="primary">Add one-off expense</button>
+  </div>
   <div class="card"><div id="expenseList"></div></div>
 </section>
 
 <section id="plan" class="screen">
-  <div class="title"><h2>Plan</h2><span id="planMonth"></span></div>
+  <div class="title"><h2>Cycle plan</h2><span id="planCycle"></span></div>
   <div class="card form">
-    <h3>1 · Money coming in</h3>
-    <label>Monthly income (€)<input id="pIncome" type="number" min="0" step="50"></label>
+    <h3>1 · Money available</h3>
+    <label>Salary / main income (€)<input id="salary" type="number" min="0" step="50"></label>
+    <label>Previous cycle leftover (€)<input id="carryIn" type="number" min="0" step="10"></label>
+    <label>Other income (€)<input id="otherIncome" type="number" min="0" step="10"></label>
 
-    <h3>2 · Commitments</h3>
-    <p class="muted">These are money you should treat as already spent.</p>
-    <label>Housing (€)<input id="pHousing" type="number" min="0" step="10"></label>
-    <label>Utilities & bills (€)<input id="pBills" type="number" min="0" step="10"></label>
-    <label>Transport (€)<input id="pTransport" type="number" min="0" step="10"></label>
-    <label>Family (€)<input id="pFamily" type="number" min="0" step="10"></label>
-    <label>Other fixed (€)<input id="pOtherFixed" type="number" min="0" step="10"></label>
+    <h3>2 · Variable monthly amounts</h3>
+    <p class="muted">These are entered for this cycle only. They do not automatically repeat.</p>
+    <label>Visa (€)<input id="visa" type="number" min="0" step="10"></label>
+    <label>3oshour (€)<input id="threeOshour" type="number" min="0" step="10"></label>
+    <label>Spontaneous expenses (€)<input id="spontaneous" type="number" min="0" step="10"></label>
 
-    <h3>3 · Savings first</h3>
-    <label>Monthly savings target (€)<input id="pSavings" type="number" min="0" step="50"></label>
-
-    <h3>4 · Variable spending</h3>
-    <p class="muted">Your allowance for flexible spending after commitments and savings.</p>
-    <label>Food & groceries (€)<input id="pFood" type="number" min="0" step="10"></label>
-    <label>Eating out (€)<input id="pEating" type="number" min="0" step="10"></label>
-    <label>Shopping (€)<input id="pShopping" type="number" min="0" step="10"></label>
-    <label>Leisure (€)<input id="pLeisure" type="number" min="0" step="10"></label>
-    <label>Health (€)<input id="pHealth" type="number" min="0" step="10"></label>
-    <label>Subscriptions (€)<input id="pSubscriptions" type="number" min="0" step="10"></label>
-    <label>Other variable (€)<input id="pOtherVar" type="number" min="0" step="10"></label>
-    <button id="savePlan" class="primary">Save monthly plan</button>
+    <h3>3 · Revolut saving</h3>
+    <p class="muted">Your contribution is a cash outflow for this cycle, but it is tracked separately as savings.</p>
+    <label>Your Revolut contribution (€)<input id="mySaving" type="number" min="0" step="50"></label>
+    <label>Wife's Revolut contribution (€)<input id="wifeSaving" type="number" min="0" step="50"></label>
+    <p class="muted">The wife's contribution defaults to €1,500 and can be changed for any cycle.</p>
+    <button id="saveCycle" class="primary">Save cycle plan</button>
   </div>
-  <div class="card" id="planReality"></div>
 
   <div class="card">
-    <div class="head"><h2>Recurring items</h2><span class="muted">automatic in new months</span></div>
-    <p class="muted">Use recurring items for salary, rent, insurance and subscriptions. They are included in the planning calculation.</p>
+    <div class="head"><h2>Recurring commitments</h2><span class="muted">automatic</span></div>
+    <p class="muted">Recurring items are treated as paid within the financial cycle. Limited installments stop automatically when their final cycle is reached.</p>
     <form id="recForm" class="form">
-      <label>Name<input id="rName" required maxlength="50" placeholder="e.g. Salary"></label>
+      <label>Name<input id="rName" required maxlength="60" placeholder="e.g. Vodafone"></label>
       <label>Amount (€)<input id="rAmount" type="number" min=".01" step=".01" required></label>
-      <label>Type<select id="rType"><option value="income">Income</option><option value="expense">Expense</option></select></label>
+      <label>Type<select id="rType"><option value="expense">Expense</option><option value="income">Income</option></select></label>
+      <label>Repeat<select id="rRepeat"><option value="forever">Every cycle</option><option value="limited">Limited number of cycles</option></select></label>
+      <label>Start cycle<input id="rStart" type="month"></label>
+      <label id="rCountWrap">Number of cycles<input id="rCount" type="number" min="1" step="1" value="12"></label>
       <label>Category<select id="rCat"></select></label>
       <button class="secondary">Add recurring item</button>
     </form>
     <div id="recurring"></div>
   </div>
+
+  <div class="card" id="planReality"></div>
 </section>
 
 <section id="savingsScreen" class="screen">
-  <div class="title"><h2>Savings</h2><span>future planning</span></div>
+  <div class="title"><h2>University savings</h2><span>€72,000 target</span></div>
   <div class="card form">
-    <label>Current savings (€)<input id="sCurrent" type="number" min="0" step="100"></label>
-    <label>Monthly contribution (€)<input id="sMonthly" type="number" min="0" step="50"></label>
-    <label>Goal (€)<input id="sGoal" type="number" min="0" step="500"></label>
-    <button id="saveSavings" class="primary">Save savings strategy</button>
+    <h3>Goal</h3>
+    <label>Current Revolut savings balance (€)<input id="sBalance" type="number" min="0" step="100"></label>
+    <label>Target (€)<input id="sGoal" type="number" min="0" step="500"></label>
+    <label>Target date<input id="sTarget" type="date"></label>
+    <label>Wife's normal monthly contribution (€)<input id="sWifeDefault" type="number" min="0" step="50"></label>
+    <button id="saveSavings" class="primary">Save savings settings</button>
   </div>
   <div class="hero">
-    <span>Goal progress</span><strong id="goalValue">€0</strong>
+    <span>Progress toward university target</span>
+    <strong id="goalValue">€0</strong>
     <div class="progress"><i id="goalBar"></i></div>
     <small id="goalText"></small>
   </div>
-  <div class="card"><h2>12-month projection</h2><div id="projection"></div></div>
+  <div class="card" id="savingsStatus"></div>
+  <div class="card"><h2>Contribution history</h2><div id="savingsHistory"></div></div>
+  <div class="card"><h2>Forward projection</h2><div id="projection"></div></div>
 </section>
 
 <section id="settings" class="screen">
   <div class="title"><h2>Data & settings</h2></div>
   <div class="card">
     <h2>Backup</h2>
-    <p class="muted">Your data currently lives on this device. Export a backup regularly so a lost phone or cleared browser cannot wipe your history.</p>
+    <p class="muted">Your data lives on this device. Export a backup regularly so a lost phone or cleared browser cannot wipe your history.</p>
     <div class="button-row"><button id="export" class="primary">Export backup</button><button id="importBtn" class="secondary">Import backup</button></div>
     <input id="importFile" type="file" accept=".json" hidden>
   </div>
   <div class="card">
-    <h2>How the app thinks</h2>
+    <h2>How V3 works</h2>
     <ul class="muted">
-      <li>Income comes first.</li>
-      <li>Fixed commitments are reserved.</li>
-      <li>Savings target is reserved before flexible spending.</li>
-      <li>The remaining amount is your variable-spending pool.</li>
-      <li>The app converts the remaining pool into a daily allowance.</li>
-      <li>Actual spending is compared with the plan and projected to month-end.</li>
+      <li>Your financial cycle runs from the salary date, normally the 25th, to the 24th of the next month.</li>
+      <li>Salary + previous cycle leftover + other income create the money available for the cycle.</li>
+      <li>Recurring commitments are automatically included and limited installments stop when finished.</li>
+      <li>Visa, 3oshour, spontaneous spending and your savings contribution are entered per cycle.</li>
+      <li>Revolut savings is a cash outflow for budgeting but remains tracked as savings.</li>
+      <li>The leftover at the end of a cycle becomes the next cycle's carry-in.</li>
     </ul>
   </div>
 </section>
 </main>
-
 <button id="fab" class="fab">+</button>
 <nav class="nav">
   <button data-screen="home" class="active"><span>⌂</span>Home</button>
-  <button data-screen="expenses"><span>＋</span>Expenses</button>
+  <button data-screen="expenses"><span>＋</span>One-off</button>
   <button data-screen="plan"><span>▤</span>Plan</button>
   <button data-screen="savingsScreen"><span>↗</span>Savings</button>
   <button data-screen="settings"><span>⚙</span>Settings</button>
