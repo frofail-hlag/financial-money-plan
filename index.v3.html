@@ -96,17 +96,17 @@
   </div>
 
   <div class="card">
-    <div class="head"><h2>Recurring & installments</h2><span class="muted">automatic</span></div>
-    <p class="muted">Use <b>Recurring</b> for expenses with no planned end. Use <b>Installment</b> for a fixed number of financial cycles. Both are included automatically.</p>
+    <div class="head"><h2>Recurring commitments</h2><span class="muted">automatic</span></div>
+    <p class="muted">Recurring items are treated as paid within the financial cycle. Limited installments stop automatically when their final cycle is reached.</p>
     <form id="recForm" class="form">
       <label>Name<input id="rName" required maxlength="60" placeholder="e.g. Vodafone"></label>
       <label>Amount (€)<input id="rAmount" type="number" min=".01" step=".01" required></label>
       <label>Type<select id="rType"><option value="expense">Expense</option><option value="income">Income</option></select></label>
-      <label>Commitment type<select id="rRepeat"><option value="forever">Recurring · every cycle</option><option value="limited">Installment · fixed cycles</option></select></label>
-      <label>Start financial cycle<input id="rStart" type="month"></label><p class="muted" id="rStartHint"></p>
+      <label>Repeat<select id="rRepeat"><option value="forever">Every cycle</option><option value="limited">Limited number of cycles</option></select></label>
+      <label>Start cycle<input id="rStart" type="month"></label>
       <label id="rCountWrap">Number of cycles<input id="rCount" type="number" min="1" step="1" value="12"></label>
       <label>Category<select id="rCat"></select></label>
-      <button id="addCommitment" class="secondary">Add commitment</button>
+      <button class="secondary">Add recurring item</button>
     </form>
     <div id="recurring"></div>
   </div>
@@ -139,58 +139,23 @@
   <div class="title"><h2>Data & settings</h2></div>
   <div class="card">
     <h2>Backup</h2>
-    <p class="muted">Money Plan is local-first. When Firebase sync is configured, the same data can sync securely between your iPhone and iPad while remaining usable offline.</p>
-    <div class="sync-status" id="syncStatus">Cloud sync: not configured</div>
+    <p class="muted">Your data lives on this device. Export a backup regularly so a lost phone or cleared browser cannot wipe your history.</p>
     <div class="button-row"><button id="export" class="primary">Export backup</button><button id="importBtn" class="secondary">Import backup</button></div>
     <input id="importFile" type="file" accept=".json" hidden>
   </div>
-
   <div class="card">
-    <h2>Cloud sync</h2>
-    <p class="muted">Use the same Money Plan account on your iPhone and iPad. Your financial data is stored under your authenticated Firebase account.</p>
-    <div id="syncSignedOut">
-      <label>Email<input id="syncEmail" type="email" autocomplete="email" placeholder="you@example.com"></label>
-      <label>Password<input id="syncPassword" type="password" autocomplete="current-password" placeholder="At least 6 characters"></label>
-      <div class="button-row"><button id="syncSignIn" class="primary">Sign in</button><button id="syncSignUp" class="secondary">Create account</button></div>
-      <button id="syncReset" class="link">Forgot password?</button>
-    </div>
-    <div id="syncSignedIn" style="display:none">
-      <div class="split"><span>Signed in as</span><b id="syncUserEmail"></b></div>
-      <div class="button-row"><button id="syncNow" class="primary">Sync now</button><button id="syncSignOut" class="secondary">Sign out</button></div>
-      <p id="syncConflictText" class="muted"></p>
-      <button id="syncClearConflicts" class="link">Clear conflict notices</button>
-    </div>
-  </div>
-  <div class="card">
-    <h2>How V3.1 works</h2>
+    <h2>How V3 works</h2>
     <ul class="muted">
       <li>Your financial cycle runs from the salary date, normally the 25th, to the 24th of the next month.</li>
       <li>Salary + previous cycle leftover + other income create the money available for the cycle.</li>
-      <li>Recurring commitments repeat indefinitely; installments repeat for a fixed number of cycles and then stop automatically.</li>
+      <li>Recurring commitments are automatically included and limited installments stop when finished.</li>
       <li>Visa, 3oshour, spontaneous spending and your savings contribution are entered per cycle.</li>
-      <li>Revolut savings is a cash outflow for budgeting but remains tracked separately toward the €72,000 university goal.</li>
-      <li>Cloud sync is local-first and offline-capable; conflict notices are raised instead of silently hiding detected changes.</li>
+      <li>Revolut savings is a cash outflow for budgeting but remains tracked as savings.</li>
       <li>The leftover at the end of a cycle becomes the next cycle's carry-in.</li>
     </ul>
   </div>
 </section>
 </main>
-<div id="migrationModal" class="modal-backdrop" style="display:none">
-  <div class="modal-card">
-    <h2>Existing Money Plan data found</h2>
-    <p class="muted">This device has existing Money Plan data, and this Firebase account also has data. V3.1 will not overwrite either automatically.</p>
-    <div class="migration-grid">
-      <div><b>This device</b><div id="migrationLocalSummary" class="muted"></div></div>
-      <div><b>Cloud account</b><div id="migrationRemoteSummary" class="muted"></div></div>
-    </div>
-    <p class="muted">A safety copy of both states has been stored locally before the choice is applied.</p>
-    <div class="button-row">
-      <button id="migrationKeepLocal" class="primary">Keep this device's data</button>
-      <button id="migrationKeepCloud" class="secondary">Keep cloud data</button>
-    </div>
-    <button id="migrationCancel" class="link">Cancel and sign out</button>
-  </div>
-</div>
 <button id="fab" class="fab">+</button>
 <nav class="nav">
   <button data-screen="home" class="active"><span>⌂</span>Home</button>
@@ -200,7 +165,6 @@
   <button data-screen="settings"><span>⚙</span>Settings</button>
 </nav>
 <div id="toast" class="toast"></div>
-<script type="module" src="firebase-sync.js"></script>
 <script src="app.js"></script>
 </div>
 </body>

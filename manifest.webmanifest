@@ -1,10 +1,1 @@
-{
-  "name":"Money Plan – Personal Finance V3",
-  "short_name":"Money Plan",
-  "start_url":"./",
-  "display":"standalone",
-  "background_color":"#f3f4f6",
-  "theme_color":"#111827",
-  "description":"Personal cash-flow and university savings planner using salary-cycle budgeting.",
-  "icons":[{"src":"icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icons/icon-512.png","sizes":"512x512","type":"image/png"}]
-}
+{"name":"Money Plan – Personal Finance V3.1","short_name":"Money Plan","start_url":"./","display":"standalone","background_color":"#f3f4f6","theme_color":"#111827","description":"Personal cash-flow and university savings planner using salary-cycle budgeting.","icons":[{"src":"icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icons/icon-512.png","sizes":"512x512","type":"image/png"}]}
