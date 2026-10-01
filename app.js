@@ -71,13 +71,31 @@ $('export').onclick=()=>{const blob=new Blob([JSON.stringify(state,null,2)],{typ
 $('importBtn').onclick=()=>$('importFile').click();$('importFile').onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>{try{const x=JSON.parse(r.result);if(!x.cycles||!x.expenses||!x.savings)throw new Error();state={...structuredClone(defaults),...x,version:3};try{window.MoneyPlanSync?.clearMigrationMarker?.();}catch(_){}save();loadPlan();loadSavings();renderRecurring();renderExpenses();render();toast('V3 backup restored')}catch(_){alert('That backup file is not a valid Money Plan V3 backup.')}};r.readAsText(f)};
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function toast(t){$('toast').textContent=t;$('toast').classList.add('show');setTimeout(()=>$('toast').classList.remove('show'),1800)}
+function setAuthMode(create=false){
+  $('authTitle').textContent=create?'Create your Money Plan account':'Welcome back';
+  $('authSubtitle').textContent=create?'Create a secure account to keep your plan synchronized across devices.':'Sign in to access your financial plan.';
+  $('authNameFields').style.display=create?'grid':'none';
+  $('authFirstName').required=create;$('authLastName').required=create;
+  $('authPassword').autocomplete=create?'new-password':'current-password';
+  $('authSubmit').textContent=create?'Create account':'Sign in';
+  $('authForgot').style.display=create?'none':'inline-block';
+  $('authToggle').textContent=create?'Already have an account? Sign in':'Create a new Money Plan account';
+}
+setAuthMode(false);
+function showAuthError(message){const e=$('authError');if(!e)return;e.textContent=message;e.style.display='block';}
+function clearAuthError(){const e=$('authError');if(e)e.style.display='none';}
+function profileName(p){return p?.displayName||[p?.firstName,p?.lastName].filter(Boolean).join(' ')||window.MoneyPlanSync?.getUser?.()?.email||'Money Plan user';}
+function updateProfileUI(){const p=window.MoneyPlanSync?.getProfile?.()||{};const u=window.MoneyPlanSync?.getUser?.();if($('profileFirstName'))$('profileFirstName').value=p.firstName||'';if($('profileLastName'))$('profileLastName').value=p.lastName||'';if($('profileEmail'))$('profileEmail').textContent=u?.email||'';}
+function showProfileModal(p={}){$('profileModalFirst').value=p.firstName||'';$('profileModalLast').value=p.lastName||'';$('profileModal').style.display='flex';}
+function hideProfileModal(){$('profileModal').style.display='none';}
+function showConflictModal(){const list=$('conflictList');const items=window.MoneyPlanSync?.getConflicts?.()||[];if(!list)return;list.innerHTML=items.slice(0,6).map(c=>`<div class="conflict-item"><div><b>${esc(c.remoteUserName||'Another user/device')}</b><span>${esc(c.message||'A shared record changed.')}</span></div><small>${new Date(c.at).toLocaleString('de-DE')}</small></div>`).join('')||'<p class="muted">No conflict details are currently stored.</p>';$('conflictModal').style.display='flex';}
 function updateSyncUI(detail={}){
   const status=$('syncStatus'), signedOut=$('syncSignedOut'), signedIn=$('syncSignedIn'), email=$('syncUserEmail'), conflict=$('syncConflictText');
   if(!status)return;
   const u=window.MoneyPlanSync?.getUser?.();
   if(detail.status==='unconfigured'){status.textContent='Cloud sync: not configured — local-only mode';status.className='sync-status warn';}
   else if(detail.status==='error'){status.textContent='Cloud sync: error — '+(detail.message||'check Firebase setup');status.className='sync-status warn';}
-  else if(detail.status==='conflict'){status.textContent='Cloud sync: conflict detected — review before continuing';status.className='sync-status warn';}
+  else if(detail.status==='conflict'){status.textContent='Cloud sync: discrepancy detected — review before continuing';status.className='sync-status warn';}
   else if(detail.status==='migration'){status.textContent='Cloud sync: migration choice required';status.className='sync-status warn';}
   else if(detail.status==='syncing'){status.textContent='Cloud sync: synchronizing…';status.className='sync-status';}
   else if(detail.status==='synced'){status.textContent='Cloud sync: synchronized';status.className='sync-status good';}
@@ -85,25 +103,50 @@ function updateSyncUI(detail={}){
   if(signedOut)signedOut.style.display=u?'none':'block';
   if(signedIn)signedIn.style.display=u?'block':'none';
   if(email)email.textContent=u?.email||'';
-  if(conflict){const count=(window.MoneyPlanSync?.getConflicts?.()||[]).length;conflict.textContent=count?`${count} conflict notice${count===1?'':'s'} stored locally.`:'No conflict notices.';}
+  if(conflict){const count=(window.MoneyPlanSync?.getConflicts?.()||[]).length;conflict.textContent=count?`${count} discrepancy notice${count===1?'':'s'} stored locally.`:'No discrepancy notices.';}
+  updateProfileUI();
 }
 function migrationSummary(x){if(!x)return '';return `${x.cycles} cycles · ${x.expenses} expenses · ${x.recurring} recurring/installments · ${x.savingsHistory} savings history · savings balance ${money(x.savingsBalance)}`;}
 function showMigration(detail={}){const m=$('migrationModal');if(!m)return;$('migrationLocalSummary').textContent=migrationSummary(detail.local);$('migrationRemoteSummary').textContent=migrationSummary(detail.remote);m.style.display='flex';}
 function hideMigration(){$('migrationModal')?.style.setProperty('display','none');}
 $('migrationKeepLocal')?.addEventListener('click',async()=>{try{await window.MoneyPlanSync.resolveMigration('local');hideMigration();toast('Device data uploaded to cloud');}catch(e){alert(e.message||'Migration failed')}});
 $('migrationKeepCloud')?.addEventListener('click',async()=>{try{await window.MoneyPlanSync.resolveMigration('cloud');hideMigration();toast('Cloud data loaded to this device');}catch(e){alert(e.message||'Migration failed')}});
-$('migrationCancel')?.addEventListener('click',async()=>{hideMigration();try{await window.MoneyPlanSync.signOut();}catch(_){}});
+$('migrationCancel')?.addEventListener('click',async()=>{hideMigration();try{await window.MoneyPlanSync.signOut();}catch(_){} });
 window.addEventListener('moneyplan:migration-needed',e=>showMigration(e.detail));
 window.addEventListener('moneyplan:sync-status',e=>updateSyncUI(e.detail));
-window.addEventListener('moneyplan:conflict',()=>updateSyncUI({status:'conflict'}));
+window.addEventListener('moneyplan:conflict',()=>{updateSyncUI({status:'conflict'});showConflictModal();});
 window.addEventListener('moneyplan:conflict-cleared',()=>updateSyncUI({}));
-window.addEventListener('moneyplan:remote-applied',()=>{try{state={...structuredClone(defaults),...JSON.parse(localStorage.getItem('money-plan-v3'))};loadPlan();loadSavings();renderRecurring();render();renderExpenses();toast('Synced from cloud')}catch(_){}});
+window.addEventListener('moneyplan:remote-applied',()=>{try{state={...structuredClone(defaults),...JSON.parse(localStorage.getItem('money-plan-v3'))};loadPlan();loadSavings();renderRecurring();render();renderExpenses();toast('Synced from cloud')}catch(_){} });
+window.addEventListener('moneyplan:profile',()=>updateProfileUI());
+window.addEventListener('moneyplan:auth-state',e=>{
+  const u=e.detail?.user, p=e.detail?.profile;
+  if(u){
+    $('authGate').style.display='none';$('app').style.display='block';updateProfileUI();
+    if(!p)showProfileModal({});
+  }else{
+    $('app').style.display='none';$('authGate').style.display='flex';$('syncSignedOut')&&( $('syncSignedOut').style.display='block');
+  }
+});
+window.moneyPlanToggleAuth=()=>{setAuthMode($('authNameFields').style.display==='none');clearAuthError();};
+window.moneyPlanForgotPassword=async()=>{clearAuthError();const email=$('authEmail').value.trim();if(!email){showAuthError('Enter your email first.');return;}try{await window.MoneyPlanSync.resetPassword(email);toast('Password reset email sent');}catch(e){showAuthError(e.message||'Password reset failed');}};
+const authGate=$('authGate');
+if(authGate){authGate.addEventListener('click',e=>{const t=e.target.closest?.('#authToggle, #authForgot');if(!t)return;e.preventDefault();e.stopPropagation();if(t.id==='authToggle')window.moneyPlanToggleAuth();else window.moneyPlanForgotPassword();},true);}
+
+$('authForm')?.addEventListener('submit',async e=>{e.preventDefault();clearAuthError();const create=$('authNameFields').style.display!=='none';try{if(create){await window.MoneyPlanSync.signUp($('authEmail').value.trim(),$('authPassword').value,$('authFirstName').value,$('authLastName').value);toast('Account created');}else{await window.MoneyPlanSync.signIn($('authEmail').value.trim(),$('authPassword').value);toast('Signed in');}}catch(err){showAuthError(err.message||'Authentication failed');}});
+$('profileModalSave')?.addEventListener('click',async()=>{try{const p=await window.MoneyPlanSync.saveProfile($('profileModalFirst').value,$('profileModalLast').value);hideProfileModal();updateProfileUI();toast(`Welcome, ${p.firstName}`);}catch(e){alert(e.message||'Could not save profile');}});
+$('saveProfile')?.addEventListener('click',async()=>{try{const p=await window.MoneyPlanSync.saveProfile($('profileFirstName').value,$('profileLastName').value);toast(`Profile saved for ${p.displayName}`);}catch(e){alert(e.message||'Could not save profile');}});
+$('changePassword')?.addEventListener('click',()=>$('passwordModal').style.display='flex');
+$('passwordCancel')?.addEventListener('click',()=>{$('passwordModal').style.display='none';});
+$('passwordSave')?.addEventListener('click',async()=>{const cur=$('currentPassword').value,nw=$('newPassword').value,cf=$('confirmPassword').value;if(!cur||!nw||nw.length<6){alert('Enter your current password and a new password of at least 6 characters.');return;}if(nw!==cf){alert('The new passwords do not match.');return;}try{await window.MoneyPlanSync.changePassword(cur,nw);$('passwordModal').style.display='none';$('currentPassword').value='';$('newPassword').value='';$('confirmPassword').value='';toast('Password updated');}catch(e){alert(e.message||'Password change failed');}});
+$('deleteAccount')?.addEventListener('click',async()=>{if(!confirm('Delete this Money Plan account and its cloud data? This cannot be undone.'))return;const current=prompt('For security, enter your current password to permanently delete the account:');if(current===null)return;try{await window.MoneyPlanSync.deleteAccount(current);toast('Account deleted');}catch(e){alert(e.message||'Account deletion failed');}});
+$('conflictClose')?.addEventListener('click',()=>{$('conflictModal').style.display='none';});
 $('syncSignIn')?.addEventListener('click',async()=>{try{await window.MoneyPlanSync.signIn($('syncEmail').value.trim(),$('syncPassword').value);toast('Signed in');}catch(e){alert(e.message||'Sign-in failed')}});
-$('syncSignUp')?.addEventListener('click',async()=>{try{await window.MoneyPlanSync.signUp($('syncEmail').value.trim(),$('syncPassword').value);toast('Account created');}catch(e){alert(e.message||'Account creation failed')}});
+$('syncSignUp')?.addEventListener('click',async()=>{try{await window.MoneyPlanSync.signUp($('syncEmail').value.trim(),$('syncPassword').value,$('profileFirstName').value,$('profileLastName').value);toast('Account created');}catch(e){alert(e.message||'Account creation failed')}});
 $('syncReset')?.addEventListener('click',async()=>{try{await window.MoneyPlanSync.resetPassword($('syncEmail').value.trim());toast('Password reset email sent');}catch(e){alert(e.message||'Password reset failed')}});
-$('syncSignOut')?.addEventListener('click',async()=>{try{await window.MoneyPlanSync.signOut();toast('Signed out');updateSyncUI({});}catch(e){alert(e.message||'Sign-out failed')}});
+$('syncSignOut')?.addEventListener('click',async()=>{try{await window.MoneyPlanSync.signOut();toast('Signed out');}catch(e){alert(e.message||'Sign-out failed')}});
 $('syncNow')?.addEventListener('click',async()=>{try{await window.MoneyPlanSync.push();toast('Sync complete');}catch(e){alert(e.message||'Sync failed')}});
 $('syncClearConflicts')?.addEventListener('click',()=>{window.MoneyPlanSync?.clearConflicts();updateSyncUI({});});
+
 $('date').value=iso(today);$('rStart').value=cycle;$('rCountWrap').style.display='none';$('addCommitment').textContent='Add recurring item';loadPlan();loadSavings();renderRecurring();render();renderExpenses();renderSavings();
 updateSyncUI({});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('sw.js').catch(()=>{});

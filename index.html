@@ -13,7 +13,33 @@
 <title>Money Plan V3</title>
 </head>
 <body>
-<div class="app" id="app">
+<div id="authGate" class="auth-gate">
+  <div class="auth-shell">
+    <div class="auth-brand">
+      <img src="icons/icon-192.png" alt="Money Plan">
+      <div><div class="eyebrow">PERSONAL FINANCE · V3.1</div><h1>Money Plan</h1><p>Plan smarter. Stay in control.</p></div>
+    </div>
+    <div class="auth-card">
+      <div class="auth-kicker">SECURE CLOUD ACCESS</div>
+      <h2 id="authTitle">Welcome back</h2>
+      <p id="authSubtitle" class="muted">Sign in to access your financial plan.</p>
+      <div id="authError" class="auth-error" style="display:none"></div>
+      <form id="authForm" class="form auth-form">
+        <div id="authNameFields" class="auth-name-grid" style="display:none">
+          <label>First name<input id="authFirstName" autocomplete="given-name"></label>
+          <label>Last name<input id="authLastName" autocomplete="family-name"></label>
+        </div>
+        <label>Email<input id="authEmail" type="email" autocomplete="email" required placeholder="you@example.com"></label>
+        <label>Password<input id="authPassword" type="password" autocomplete="current-password" required minlength="6" placeholder="At least 6 characters"></label>
+        <button id="authSubmit" class="primary auth-submit" type="submit">Sign in</button>
+      </form>
+      <button id="authForgot" type="button" class="link auth-link" onclick="window.moneyPlanForgotPassword && window.moneyPlanForgotPassword()">Forgot password?</button>
+      <button id="authToggle" type="button" class="auth-toggle" onclick="window.moneyPlanToggleAuth && window.moneyPlanToggleAuth()">Create a new Money Plan account</button>
+      <div class="auth-footer"><span class="pulse-dot"></span> Your data is protected by Firebase authentication and private Firestore rules.</div>
+    </div>
+  </div>
+</div>
+<div class="app" id="app" style="display:none">
 <header class="topbar">
   <div><div class="eyebrow">PERSONAL FINANCE · V3</div><h1>Money Plan</h1></div>
   <button id="help" class="icon">?</button>
@@ -145,6 +171,20 @@
     <input id="importFile" type="file" accept=".json" hidden>
   </div>
 
+  <div class="card account-card">
+    <div class="head"><h2>Account</h2><span class="account-badge">SECURE</span></div>
+    <div class="profile-grid">
+      <label>First name<input id="profileFirstName" autocomplete="given-name"></label>
+      <label>Last name<input id="profileLastName" autocomplete="family-name"></label>
+    </div>
+    <div class="split"><span>Email</span><b id="profileEmail"></b></div>
+    <div class="button-row">
+      <button id="saveProfile" class="secondary">Save name</button>
+      <button id="changePassword" class="secondary">Change password</button>
+    </div>
+    <button id="deleteAccount" class="danger-link">Delete account</button>
+  </div>
+
   <div class="card">
     <h2>Cloud sync</h2>
     <p class="muted">Use the same Money Plan account on your iPhone and iPad. Your financial data is stored under your authenticated Firebase account.</p>
@@ -175,6 +215,40 @@
   </div>
 </section>
 </main>
+<div id="passwordModal" class="modal-backdrop" style="display:none">
+  <div class="modal-card">
+    <div class="modal-orb">⌁</div>
+    <h2>Change password</h2>
+    <p class="muted">For security, confirm your current password before choosing a new one.</p>
+    <div class="form">
+      <label>Current password<input id="currentPassword" type="password" autocomplete="current-password"></label>
+      <label>New password<input id="newPassword" type="password" autocomplete="new-password" minlength="6"></label>
+      <label>Confirm new password<input id="confirmPassword" type="password" autocomplete="new-password" minlength="6"></label>
+      <div class="button-row"><button id="passwordCancel" class="secondary">Cancel</button><button id="passwordSave" class="primary">Update password</button></div>
+    </div>
+  </div>
+</div>
+<div id="profileModal" class="modal-backdrop" style="display:none">
+  <div class="modal-card">
+    <div class="modal-orb">✦</div>
+    <h2>Complete your profile</h2>
+    <p class="muted">Add your first and last name. These names are used to identify changes in shared sync notifications.</p>
+    <div class="profile-grid">
+      <label>First name<input id="profileModalFirst" autocomplete="given-name" required></label>
+      <label>Last name<input id="profileModalLast" autocomplete="family-name" required></label>
+    </div>
+    <button id="profileModalSave" class="primary">Continue</button>
+  </div>
+</div>
+<div id="conflictModal" class="modal-backdrop" style="display:none">
+  <div class="modal-card conflict-card">
+    <div class="modal-orb">!</div>
+    <h2>Data discrepancy detected</h2>
+    <p class="muted">Money Plan found a change on another device or account that differs from a local change. Nothing was silently overwritten.</p>
+    <div id="conflictList" class="conflict-list"></div>
+    <button id="conflictClose" class="primary">Review later</button>
+  </div>
+</div>
 <div id="migrationModal" class="modal-backdrop" style="display:none">
   <div class="modal-card">
     <h2>Existing Money Plan data found</h2>
