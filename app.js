@@ -11,9 +11,10 @@ const displayDate=d=>`${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear
 const displayIsoDate=x=>{const d=new Date(`${x}T12:00:00`);return isNaN(d)?String(x):displayDate(d)};
 const today=new Date();
 let cycle=cycleKeyFromDate(today);
-const defaults={version:3,cycles:{},expenses:[],recurring:[],savings:{balance:0,goal:72000,targetDate:"2028-09-30",wifeDefault:1500},savingsHistory:{}};
+const defaults={version:3,cycles:{},expenses:[],recurring:[],savings:{balance:6000,goal:72000,targetDate:"2028-09-30",wifeDefault:1500,openingCycle:"2026-10",lastContributionCycle:"2028-08"},savingsHistory:{}};
 let state=structuredClone(defaults);
 try{const raw=localStorage.getItem("money-plan-v3");if(raw)state={...defaults,...JSON.parse(raw)};else migrateV2()}catch(e){try{migrateV2()}catch(_){}}
+if(!state.savings.openingCycle){if(!Number(state.savings.balance))state.savings.balance=6000;state.savings.openingCycle="2026-10";state.savings.lastContributionCycle="2028-08";}
 function migrateV2(){try{const raw=localStorage.getItem("money-plan-v2");if(!raw)return;const v2=JSON.parse(raw);state={...structuredClone(defaults),version:3};const monthPlans=v2.plans||{};Object.entries(monthPlans).forEach(([ym,p])=>{const key=ym;state.cycles[key]={salary:p.income||0,carryIn:0,otherIncome:0,visa:0,threeOshour:0,spontaneous:0,mySaving:p.savings||0,wifeSaving:1500};});state.expenses=(v2.expenses||[]).map(e=>({...e,cycleKey:cycleKeyFromDate(new Date(`${e.date}T12:00:00`))}));state.recurring=(v2.recurring||[]).map(r=>({id:r.id,name:r.name,amount:r.amount,type:r.type,category:r.category||"Other",repeat:"forever",startCycle:cycle,cycles:0,active:r.active!==false}));if(v2.savings)state.savings={balance:v2.savings.current||0,goal:v2.savings.goal||72000,targetDate:"2028-09-30",wifeDefault:1500};save();}catch(e){}}
 let syncTimer=null;
 function save(){
